@@ -19,6 +19,10 @@ https://docs.google.com/presentation/d/e/2PACX-1vQBvTv2y9-Rx4eEDBKjal6yzDVlXMY7O
 https://www.youtube.com/watch?v=_jGtef2ER4Y
 
 
+# Imágen
+
+https://pbs.twimg.com/media/DrSsf6wW4AAKJXG.jpg:large
+
 # Autor
 
 Harry Cristhian Torres Moreno
@@ -29,4 +33,4 @@ https://twitter.com/HarryCTorres
 
 # Licencia
 
-Este trabajo se publica bajjo la licencia del MIT.
+Este trabajo se publica bajo la licencia del MIT.
