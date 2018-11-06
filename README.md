@@ -10,12 +10,13 @@ Teniendo en cuenta lo anterior, se propone construir dos visualizaciones interac
 https://hctorresm.github.io/el-tipo-de-caf-que-exportamos/
 
 
-
 # Diapositivas 
 
 https://docs.google.com/presentation/d/e/2PACX-1vQBvTv2y9-Rx4eEDBKjal6yzDVlXMY7OE7K72OjrPOKbjCfJLu-fIO-UC2Rql71e9FGKDt6kICvBC9_/pub?start=false&loop=false&delayms=3000&fbclid=IwAR25U6ZCNzNry96EwIyIc6hrGIR9_0Ad2XUB59oxjMQuGzV2lqYAsLQW5d0&slide=id.gc6f90357f_0_0
 
 # Link del video 
+
+https://www.youtube.com/watch?v=_jGtef2ER4Y
 
 
 # Autor
