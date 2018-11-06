@@ -21,6 +21,7 @@ Harry Cristhian Torres Moreno
 
 https://www.linkedin.com/in/harry-cristhian-torres-moreno-5bb53370/
 
+https://twitter.com/HarryCTorres
 
 # Licencia
 
