@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style> /* set the CSS */
+    
+.node circle {
+  fill: black;
+  stroke: black;
+  stroke-width: 3px;
+}
+
+.node text { font: 12px sans-serif; }
+
+.node--internal text {
+  text-shadow: 0 1px 0 #fff, 0 -1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff;
+}
+
+.link {
+  fill: none;
+  stroke: black;
+  stroke-width: 1px;
+}
+
+</style>
+
+<body>
+
+<h1> ¿Hacia donde exportamos café y de qué tipo? </h1>
+
+<ul>
+<li>Universidad de los Andes</li>
+<li>Maestría en ingeniería de información </li>
+<li>Visual analytics</li>
+<li>Autor: <a target="_blank" href="https://www.linkedin.com/in/harry-cristhian-torres-moreno-5bb53370/">Harry Cristhian Torres Moreno</a> </li>
+<li>Código: 201727422 </li>
+
+</ul>
+
+
+<hr/>
+
+
+
+<h1> Introducción</h1>
+<p>
+Colombia es uno de los países que se ha caracterizado por su café, el Ministerio de Agricultura y Desarrollo Rural se ha encargado de recopilar toda la información asociada a las exportaciones e importaciones de Café, lo anterior con el fin de poder cuantificar las ganancias asociadas a este producto.</p>
+<p>
+Teniendo en cuenta lo anterior, se propone construir dos visualizaciones interactivas basado en árboles (tree) con el objetivo de estudiar a  profundidad qué tipo y hacia donde se está exportando el café en los departamentos de Caldas, Huila, Antioquia, Risaralda, Quindío, Bogotá, Tolima, Valle del Cauca, Santander y Cauca, los datos se encuentran disponibles en la página de datos abiertos de colombia en  <a target="_blank" href= "https://www.datos.gov.co/Agricultura-y-Desarrollo-Rural/Cadena-Productiva-Caf-Exportaciones/gzwq-vje7"> datos exportaciones de café </a>.</p>
+
+<h1> Metodología </h1>
+<ul>
+  <li> <strong>Datos:</strong> Los datos fueron obtenidos de  la página de <a target="_blank" href= "https://www.datos.gov.co/"> Datos abiertos de Colombia </a>, estos datos contienen las exportaciones de café por departamento desde el año 2006 hasta el año 2018</li>
+  <li> <strong>Procesamiento de los datos: </strong> Los datos fueron procesados en Python con el fin de obtener una rchivo CSV con dos columnas, parents y children (padres e hijos) </li>
+  <li> <strong>Visualización: </strong> Para seleccionar la mejor visualización teniendo en cuenta el principio de expresividad y eficiencia, se utilizó como metodología el framework de Tamara (Tamara Munzner: Visualization Analysis and Design AK Peters 2014.) </li>
+  <li> <strong> Herramientas </strong>
+    <ul>
+    <li>Anaconda-Spyder, Python</li>
+    <li>Text Sublime, HTML, CSS, Javascript D3 v5.0</li>
+    <li>GitHub para el desplegue de la página </li>
+  </ul>
+</li>  
+</ul>
+
+
+
+<h1> Destino exportación de café </h1>
+
+<p> A continuación se realiza una visualización basado en árboles que permite determinar hacia qué países se está exportando el café en los departamentos de Caldas, Huila, Antioquia, Risaralda, Quindío, Bogotá, Tolima, Valle del Cauca, Santander y Cauca, así mismo se presenta una caracterización en función del framework de Tamara que permitirá orientar esta visualización.
+
+<ul>
+    <li> <strong>What</strong> 
+        <ul> 
+            <li> <strong>Tipo de conjunto de datos: </strong> Tree </li>
+            <li> <strong> Nodos </strong> Los nodos son:
+                <ol> 
+                    <li> <strong>País origen:</strong> Corresponde al país de origen, en este caso Colombia, esta variable es categórica.</li>
+                    <li> <strong>Departamento de origen: </strong> Corresponde al departamento de donde se origina la exportación de café, esta variable es categórica.</li>
+                    <li> <strong>País destino: </strong> Corresponde al país destino de la exportación, esta variable es categórica.</li>
+                </ol>
+            </li>
+        </ul>
+    </li>
+</ul>
+
+<ul>
+    <li> <strong> Why </strong> 
+         <ul>
+         <li> <strong>Tarea:</strong> Buscar caminos por departamento para determinar hacia donde se exporta café (Tamara: Search - Paths ) </li>
+         </ul>
+    </li>
+
+</ul>
+    
+
+<ul>
+    <li> <strong> How </strong> 
+         <ul>
+         <li> <strong>Marcas:</strong> Puntos para identificar los nodos y lìneas para identificar los enlaces </li>
+         <li> <strong>Canales:</strong> 
+            <ul>
+                <li> <strong>Posición :</strong> Cada nodo tendrá una posición espacial determinada, el cuál está influenciada por la estructura jerárquica del árbol </li>
+            </ul>
+          </li>
+         </ul>
+    </li>
+
+  <li> <strong>Interacción: </strong> Al realizar click sobre un nodo de interés, se desplegarán todos los "hijos" asociados a este nodo. </li>
+
+</ul>
+
+
+
+
+<!-- load the d3.js library -->      
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script id="#1">
+
+// set the dimensions and margins of the diagram
+var margin = {top: 20, right: 90, bottom: 30, left: 90},
+    width = 1000 - margin.left - margin.right,
+    height = 1000 - margin.top - margin.bottom;
+
+
+ var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.right + margin.left)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate("
+          + margin.left + "," + margin.top + ")");
+
+  var i = 0,
+      duration = 750,
+      root;
+ 
+
+// declares a tree layout and assigns the size
+var treemap = d3.tree()
+    .size([height, width]);
+
+// load the external data
+d3.csv("https://raw.githubusercontent.com/hctorresm/el-tipo-de-caf-que-exportamos/master/data_prueba_757.csv", function(error, flatData) {
+  if (error) throw error;
+
+  // assign null correctly
+  flatData.forEach(function(d) {
+      if (d.parent == "null") { d.parent = null};
+    });
+
+  // convert the flat data into a hierarchy 
+  var treeData = d3.stratify()
+    .id(function(d) { return d.name; })
+    .parentId(function(d) { return d.parent; })
+    (flatData);
+
+  // assign the name to each node
+  treeData.each(function(d) {
+      d.name = d.id;
+    });
+
+
+//// Assigns parent, children, height, depth
+root = d3.hierarchy(treeData, function(d) { return d.children; });
+root.x0 = height / 2;
+root.y0 = 0;
+
+// Collapse after the second level
+root.children.forEach(collapse);
+
+update(root);
+
+});
+
+// Collapse the node and all it's children
+function collapse(d) {
+  if(d.children) {
+    d._children = d.children
+    d._children.forEach(collapse)
+    d.children = null
+  }
+}
+
+function update(source) {
+
+  // Assigns the x and y position for the nodes
+  var treeData = treemap(root);
+
+  // Compute the new tree layout.
+  var nodes = treeData.descendants(),
+      links = treeData.descendants().slice(1);
+
+  // Normalize for fixed-depth.
+  nodes.forEach(function(d){ d.y = d.depth * 180});
+
+  // ****************** Nodes section ***************************
+
+  // Update the nodes...
+  var node = svg.selectAll('g.node')
+      .data(nodes, function(d) {return d.id || (d.id = ++i); });
+
+  // Enter any new modes at the parent's previous position.
+  var nodeEnter = node.enter().append('g')
+      .attr('class', 'node')
+      .attr("transform", function(d) {
+        return "translate(" + source.y0 + "," + source.x0 + ")";
+    })
+    .on('click', click);
+
+  // Add Circle for the nodes
+  nodeEnter.append('circle')
+      .attr('class', 'node')
+      .attr('r', 1e-6)
+      .style("fill", function(d) {
+          return d._children ? "black" : "black";
+      });
+
+  // Add labels for the nodes
+  nodeEnter.append('text')
+      .attr("dy", ".35em")
+      .attr("x", function(d) {
+          return d.children || d._children ? -13 : 13;
+      })
+      .attr("text-anchor", function(d) {
+          return d.children || d._children ? "end" : "start";
+      })
+      .text(function(d) { return d.data.name; });
+
+  // UPDATE
+  var nodeUpdate = nodeEnter.merge(node);
+
+  // Transition to the proper position for the node
+  nodeUpdate.transition()
+    .duration(duration)
+    .attr("transform", function(d) { 
+        return "translate(" + d.y + "," + d.x + ")";
+     });
+
+  // Update the node attributes and style
+  nodeUpdate.select('circle.node')
+    .attr('r', 5)
+    .style("fill", function(d) {
+        return d._children ? "black" : "black";
+    })
+    .attr('cursor', 'pointer');
+
+
+  // Remove any exiting nodes
+  var nodeExit = node.exit().transition()
+      .duration(duration)
+      .attr("transform", function(d) {
+          return "translate(" + source.y + "," + source.x + ")";
+      })
+      .remove();
+
+  // On exit reduce the node circles size to 0
+  nodeExit.select('circle')
+    .attr('r', 1e-6);
+
+  // On exit reduce the opacity of text labels
+  nodeExit.select('text')
+    .style('fill-opacity', 1e-6);
+
+  // ****************** links section ***************************
+
+  // Update the links...
+  var link = svg.selectAll('path.link')
+      .data(links, function(d) { return d.id; });
+
+  // Enter any new links at the parent's previous position.
+  var linkEnter = link.enter().insert('path', "g")
+      .attr("class", "link")
+      .attr('d', function(d){
+        var o = {x: source.x0, y: source.y0}
+        return diagonal(o, o)
+      });
+
+  // UPDATE
+  var linkUpdate = linkEnter.merge(link);
+
+  // Transition back to the parent element position
+  linkUpdate.transition()
+      .duration(duration)
+      .attr('d', function(d){ return diagonal(d, d.parent) });
+
+  // Remove any exiting links
+  var linkExit = link.exit().transition()
+      .duration(duration)
+      .attr('d', function(d) {
+        var o = {x: source.x, y: source.y}
+        return diagonal(o, o)
+      })
+      .remove();
+
+  // Store the old positions for transition.
+  nodes.forEach(function(d){
+    d.x0 = d.x;
+    d.y0 = d.y;
+  });
+
+  // Creates a curved (diagonal) path from parent to the child nodes
+  function diagonal(s, d) {
+
+    path = `M ${s.y} ${s.x}
+            C ${(s.y + d.y) / 2} ${s.x},
+              ${(s.y + d.y) / 2} ${d.x},
+              ${d.y} ${d.x}`
+
+    return path
+  }
+
+  // Toggle children on click.
+  function click(d) {
+    if (d.children) {
+        d._children = d.children;
+        d.children = null;
+      } else {
+        d.children = d._children;
+        d._children = null;
+      }
+    update(d);
+  }
+}
+;
+
+</script>
+
+
+<h2> Análisis y observación </h2>
+<p>Al dar click sobre un nodo, se despliega los nodos "hijos", así, esta visualización permite determinar los destinos de exportación de café por departamento. </p>
+
+
+
+<h1> ¿Qué tipo de café se exporta? </h1>
+
+
+<p> A continuación se realiza una visualización basado en árboles que permite determinar qué tipo de café se está exportando en los departamentos de Caldas, Huila, Antioquia, Risaralda, Quindío, Bogotá, Tolima, Valle del Cauca, Santander y Cauca, así mismo se presenta una caracterización en función del framework de Tamara que permitirá orientar esta visualización.
+
+<ul>
+    <li> <strong>What</strong> 
+        <ul> 
+            <li> <strong>Tipo de conjunto de datos: </strong> Tree </li>
+            <li> <strong> Nodos </strong> Los nodos son:
+                <ol> 
+                    <li> <strong>País origen:</strong> Corresponde al país de origen, en este caso Colombia, esta variable es categórica.</li>
+                    <li> <strong>Departamento de origen: </strong> Corresponde al departamento de donde se origina la exportación de café, esta variable es categórica.</li>
+                    <li> <strong>Tipo de café: </strong> Corresponde al tipo de café que se exporta, esta variable es categórica.</li>
+                </ol>
+            </li>
+        </ul>
+    </li>
+</ul>
+
+<ul>
+    <li> <strong> Why </strong> 
+         <ul>
+         <li> <strong>Tarea:</strong> Buscar caminos por departamento para determinar qué tipo de café se está exportando (Tamara: Search - Paths ) </li>
+         </ul>
+    </li>
+
+</ul>
+    
+
+<ul>
+    <li> <strong> How </strong> 
+         <ul>
+         <li> <strong>Marcas:</strong> Puntos para identificar los nodos y lìneas para identificar los enlaces </li>
+         <li> <strong>Canales:</strong> 
+            <ul>
+                <li> <strong>Posición :</strong> Cada nodo tendrá una posición espacial determinada, el cuál está influenciada por la estructura jerárquica del árbol </li>
+            </ul>
+
+
+          </li>
+
+
+         </ul>
+    </li>
+  <li> <strong>Interacción: </strong> Al realizar click sobre un nodo de interés, se desplegarán todos los "hijos" asociados a este nodo. </li>
+
+</ul>
+
+
+<!-- load the d3.js library -->      
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script id="#2">
+
+// set the dimensions and margins of the diagram
+var margin2 = {top: 20, right: 90, bottom: 30, left: 90},
+    width2 = 1000 - margin2.left - margin2.right,
+    height2 = 500 - margin2.top - margin2.bottom;
+
+
+ var svg2 = d3.select("body").append("svg")
+    .attr("width", width2 + margin2.right + margin2.left)
+    .attr("height", height2 + margin2.top + margin2.bottom)
+    .append("g")
+    .attr("transform", "translate("
+          + margin2.left + "," + margin2.top + ")");
+
+  var i2 = 0,
+      duration2 = 750,
+      root2;
+ 
+
+// declares a tree layout and assigns the size
+var treemap2 = d3.tree()
+    .size([height2, width2]);
+
+// load the external data
+d3.csv("https://raw.githubusercontent.com/hctorresm/el-tipo-de-caf-que-exportamos/master/data_prueba_731.csv", function(error2, flatData2) {
+  if (error2) throw error2;
+
+  // assign null correctly
+  flatData2.forEach(function(d) {
+      if (d.parent == "null") { d.parent = null};
+    });
+
+  // convert the flat data into a hierarchy 
+  var treeData2 = d3.stratify()
+    .id(function(d) { return d.name; })
+    .parentId(function(d) { return d.parent; })
+    (flatData2);
+
+  // assign the name to each node
+  treeData2.each(function(d) {
+      d.name = d.id;
+    });
+
+
+//// Assigns parent, children, height, depth
+root2= d3.hierarchy(treeData2, function(d) { return d.children; });
+console.log(root2)
+
+root2.x0 = height2 / 2;
+root2.y0 = 0;
+
+// Collapse after the second level
+root2.children.forEach(collapse2);
+update2(root2);
+
+});
+
+// Collapse the node and all it's children
+function collapse2(d) {
+  if(d.children) {
+    d._children = d.children
+    d._children.forEach(collapse2)
+    d.children = null
+  }
+}
+
+function update2(source) {
+
+  // Assigns the x and y position for the nodes
+  var treeData2 = treemap2(root2);
+
+  // Compute the new tree layout.
+  var nodes2 = treeData2.descendants(),
+      links2 = treeData2.descendants().slice(1);
+
+  // Normalize for fixed-depth.
+  nodes2.forEach(function(d){ d.y = d.depth * 180});
+
+  // ****************** Nodes section ***************************
+
+  // Update the nodes...
+  var node2 = svg2.selectAll('g.node')
+      .data(nodes2, function(d) {return d.id || (d.id = ++i2); });
+
+  // Enter any new modes at the parent's previous position.
+  var nodeEnter2 = node2.enter().append('g')
+      .attr('class', 'node')
+      .attr("transform", function(d) {
+        return "translate(" + source.y0 + "," + source.x0 + ")";
+    })
+    .on('click', click2);
+
+  // Add Circle for the nodes
+  nodeEnter2.append('circle')
+      .attr('class', 'node')
+      .attr('r', 1e-6)
+      .style("fill", function(d) {
+          return d._children ? "black" : "black";
+      });
+
+  // Add labels for the nodes
+  nodeEnter2.append('text')
+      .attr("dy", ".35em")
+      .attr("x", function(d) {
+          return d.children || d._children ? -13 : 13;
+      })
+      .attr("text-anchor", function(d) {
+          return d.children || d._children ? "end" : "start";
+      })
+      .text(function(d) { return d.data.name; });
+
+  // UPDATE
+  var nodeUpdate2 = nodeEnter2.merge(node2);
+
+  // Transition to the proper position for the node
+  nodeUpdate2.transition()
+    .duration(duration2)
+    .attr("transform", function(d) { 
+        return "translate(" + d.y + "," + d.x + ")";
+     });
+
+  // Update the node attributes and style
+  nodeUpdate2.select('circle.node')
+    .attr('r', 5)
+    .style("fill", function(d) {
+        return d._children ? "black" : "black";
+    })
+    .attr('cursor', 'pointer');
+
+
+  // Remove any exiting nodes
+  var nodeExit2 = node2.exit().transition()
+      .duration(duration2)
+      .attr("transform", function(d) {
+          return "translate(" + source.y + "," + source.x + ")";
+      })
+      .remove();
+
+  // On exit reduce the node circles size to 0
+  nodeExit2.select('circle')
+    .attr('r', 1e-6);
+
+  // On exit reduce the opacity of text labels
+  nodeExit2.select('text')
+    .style('fill-opacity', 1e-6);
+
+  // ****************** links section ***************************
+
+  // Update the links...
+  var link2 = svg2.selectAll('path.link')
+      .data(links2, function(d) { return d.id; });
+
+  // Enter any new links at the parent's previous position.
+  var linkEnter2 = link2.enter().insert('path', "g")
+      .attr("class", "link")
+      .attr('d', function(d){
+        var o2 = {x: source.x0, y: source.y0}
+        return diagonal2(o2, o2)
+      });
+
+  // UPDATE
+  var linkUpdate2 = linkEnter2.merge(link2);
+
+  // Transition back to the parent element position
+  linkUpdate2.transition()
+      .duration(duration2)
+      .attr('d', function(d){ return diagonal2(d, d.parent) });
+
+  // Remove any exiting links
+  var linkExit2 = link2.exit().transition()
+      .duration(duration2)
+      .attr('d', function(d) {
+        var o2 = {x: source.x, y: source.y}
+        return diagonal2(o2, o2)
+      })
+      .remove();
+
+  // Store the old positions for transition.
+  nodes2.forEach(function(d){
+    d.x0 = d.x;
+    d.y0 = d.y;
+  });
+
+  // Creates a curved (diagonal) path from parent to the child nodes
+  function diagonal2(s, d) {
+
+    path2 = `M ${s.y} ${s.x}
+            C ${(s.y + d.y) / 2} ${s.x},
+              ${(s.y + d.y) / 2} ${d.x},
+              ${d.y} ${d.x}`
+
+    return path2
+  }
+
+  // Toggle children on click.
+  function click2(d) {
+    if (d.children) {
+        d._children = d.children;
+        d.children = null;
+      } else {
+        d.children = d._children;
+        d._children = null;
+      }
+    update2(d);
+  }
+}
+;
+
+    
+</script>
+
+
+<h2> Análisis y observación </h2>
+<p>Al dar click sobre un nodo, se despliega los nodos "hijos", así, esta visualización permite determinar qué tipo de café se exporta en un departamento de interés. </p>
+
+
+
+
+<h1> Referencias </h1>
+Los códigos utilizados para esta visualización fueron obtenidos y adaptados de:
+
+<li> https://bl.ocks.org/d3noob/1dbf3d4abe0ab53f8c4c6bd24192bb6b </li>
+<li> https://bl.ocks.org/d3noob/80c100e35817395e88918627eeeac717 </li>
+
+
+</body>
